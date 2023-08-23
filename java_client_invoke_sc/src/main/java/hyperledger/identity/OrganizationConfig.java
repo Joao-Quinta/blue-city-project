@@ -35,7 +35,9 @@ public class OrganizationConfig {
         this.privPath = this.cryptoPath.resolve(Paths.get("users/" + userName + "/msp/keystore/priv_sk"));
         this.keyDirPath = this.cryptoPath.resolve(Paths.get("users/" + userName + "/msp/keystore"));
         this.tlsCertPath = this.cryptoPath.resolve(Paths.get("peers/" + peerName + "/tls/ca.crt"));
+
     }
+
 
     public String getOrgName() {
         return orgName;
@@ -88,5 +90,14 @@ public class OrganizationConfig {
     public Path getTlsCertPath() {
         return tlsCertPath;
     }
+    /*
+    public String getNetworkConfigPathOrg1() {
+        return networkConfigPathOrg1;
+    }
+
+    public String getNetworkConfigPathOrg2() {
+        return networkConfigPathOrg2;
+    }
+    */
 }
 

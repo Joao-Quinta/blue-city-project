@@ -21,6 +21,8 @@ func (t *registerDID) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 		return t.put(stub, args)
 	} else if fn == "get" {
 		return t.get(stub, args)
+	} else if fn == "ping"{
+		return t.ping(stub, args)
 	}
 
 	return shim.Error("Invalid invoke function name. Expecting \"put\" \"get\"")
@@ -35,6 +37,14 @@ func (t *registerDID) put(stub shim.ChaincodeStubInterface, args []string) peer.
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Failed to set asset: %s", args[0]))
 	}
+
+	err = stub.SetEvent("registerEvent", []byte("This is a test event!"))
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Failed to emit event: %s", err))
+	}
+
+	fmt.Println("Successfully emitted registerEvent")
+	
 	return shim.Success(nil)
 }
 
@@ -51,6 +61,10 @@ func (t *registerDID) get(stub shim.ChaincodeStubInterface, args []string) peer.
 		return shim.Error(fmt.Sprintf("Asset not found: %s", args[0]))
 	}
 	return shim.Success(value)
+}
+
+func (t *registerDID) ping(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+	return shim.Success([]byte("@@@@@@@@@@@@@@@@@@@@@@ Ping successful!"))
 }
 
 func main() {

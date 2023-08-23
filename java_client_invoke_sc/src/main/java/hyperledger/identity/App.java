@@ -1,12 +1,16 @@
 package hyperledger.identity;
 
+import org.hyperledger.fabric.client.Contract;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
 import org.hyperledger.fabric.client.identity.X509Identity;
+import org.hyperledger.fabric.client.Network;
+
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
-import java.security.cert.X509Certificate;s
+import java.security.cert.X509Certificate;
 
 public final class App {
 
@@ -21,7 +25,7 @@ public final class App {
     private static Path KEY_DIR_PATH;
 
     public static void main(String[] args) throws Exception {
-        OrganizationConfig orgConfig = new OrganizationConfig("1", "mychannel", "register");
+        OrganizationConfig orgConfig = new OrganizationConfig("2", "mychannel", "random");
         CERT_PATH = orgConfig.getCertPath();
         TLS_CERT_PATH = orgConfig.getTlsCertPath();
         PEER_ENDPOINT = orgConfig.getPeerEndpoint();
@@ -49,16 +53,33 @@ public final class App {
             .commitStatusOptions(options -> options.withDeadlineAfter(1, TimeUnit.MINUTES));
         
         try (var gateway = builder.connect()) {
-            if (CHAINCODE_NAME == "register"){
+            // Query the ledger before interacting with chaincodes
+            Network network = gateway.getNetwork(CHANNEL_NAME);
+            //System.out.println(CHANNEL_NAME);
+            //Contract contract = network.getContract("register");
+            //byte[] result = contract.evaluateTransaction("ping");
+            //System.out.println("Query result: " + new String(result, StandardCharsets.UTF_8));
+            
+            if (CHAINCODE_NAME.equals("register")){
                 RegisterChaincodeClient chaincodeClient = new RegisterChaincodeClient(gateway, CHANNEL_NAME, CHAINCODE_NAME);
                 if (identity instanceof X509Identity) {
                     X509Identity x509Identity = (X509Identity) identity;
                     X509Certificate certificate = x509Identity.getCertificate();
                     chaincodeClient.run(certificate, PRIV_PATH);
                 }
-            }else if (CHAINCODE_NAME == "random"){
+            }else if (CHAINCODE_NAME.equals("random")){
                 RandomChaincodeClient chaincodeClient = new RandomChaincodeClient(gateway, CHANNEL_NAME, CHAINCODE_NAME);
                 chaincodeClient.run();
+            }else if (CHAINCODE_NAME.equals("listen")){
+                //Network network = gateway.getNetwork(CHANNEL_NAME);
+                // create a BlockListener
+                BlockListener blockListener = new BlockListener(network);
+                // start listening for block events
+                blockListener.run();
+                System.out.println("It is exiting the run method -------> closing channel soon");
+                
+                // start listening for block events
+                // blockListener.listen();
             }
             
         } finally {
